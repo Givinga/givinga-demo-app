@@ -44,7 +44,11 @@ export default function Charities({ stripeSecret, user }) {
 
   const recurringDonation = useCallback(async (charityId) => {
     const stripe = await stripePromise;
-    let session = await subscriptionDonation(stripeSecret.token, charityId);
+    let subscriptionId = await subscriptionDonation(
+      stripeSecret.token,
+      charityId
+    );
+    alert(`Succesfully created subscription: ${subscriptionId}`);
   }, []);
 
   const fundedDonation = useCallback((charityId) => {
