@@ -15,6 +15,7 @@ import {
   getStripe,
   donateViaCheckout,
   subaccountFundingViaIntents,
+  subscriptionDonation,
 } from "../api/GivingaPaymentsAPI";
 import { userProfile, submitFundedDonation } from "../api/GivingaAPI";
 
@@ -39,6 +40,12 @@ export default function Charities({ stripeSecret, user }) {
     const result = await stripe.redirectToCheckout({
       sessionId: session.id,
     });
+  }, []);
+
+  const recurringDonation = useCallback(async (charityId) => {
+    const stripe = await stripePromise;
+    let session = await subscriptionDonation(stripeSecret.token, charityId);
+    console.log(session);
   }, []);
 
   const fundedDonation = useCallback((charityId) => {
@@ -149,6 +156,15 @@ export default function Charities({ stripeSecret, user }) {
                               onClick={() => donate(charity.id)}
                             >
                               Direct Donation
+                            </button>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+                              type="button"
+                              onClick={() => recurringDonation(charity.id)}
+                            >
+                              $5/Month Recurring Donation
                             </button>
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

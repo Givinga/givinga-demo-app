@@ -1,6 +1,7 @@
 import CryptoJS from "crypto-js";
 import { sha256 } from "crypto-js/sha256";
 import { hmacSHA256 } from "crypto-js/hmac-sha256";
+import fetchToCurl from "fetch-to-curl";
 
 export async function getStripe() {
   let now = Math.floor(Date.now() / 1000);
@@ -35,7 +36,7 @@ export async function getStripe() {
 
 export async function subaccountFundingViaIntents(token, accountNumber) {
   const requestBody = {
-    amount: 500,
+    amount: 5000,
     currency: "USD",
     customerCoveringFee: false,
     matchRequested: false,
@@ -44,7 +45,7 @@ export async function subaccountFundingViaIntents(token, accountNumber) {
   };
 
   let response = await fetch(
-    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/payment-intents`,
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/payment-intents`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +72,7 @@ export async function subaccountFundingViaCheckout(
   let requestBody = {
     subaccountNumber: accountNumber,
     currency: "USD",
-    amount: 500,
+    amount: 5000,
     successURL: `${process.env.NEXT_PUBLIC_APP_URL}/profile`,
     cancelURL: `${process.env.NEXT_PUBLIC_APP_URL}/profile`,
     productName: "Account funding",
@@ -79,7 +80,7 @@ export async function subaccountFundingViaCheckout(
   };
 
   let response = await fetch(
-    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/checkout`,
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/checkout`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +107,7 @@ export async function donateViaCheckout(
   let requestBody = {
     givingaAccountNumber: accountNumber,
     currency: "USD",
-    amount: 500,
+    amount: 5000,
     charityId: charityId,
     matchRequested: false,
     successURL: `${process.env.NEXT_PUBLIC_APP_URL}/charities`,
@@ -117,7 +118,7 @@ export async function donateViaCheckout(
   };
 
   let response = await fetch(
-    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/checkout`,
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/checkout`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -132,5 +133,107 @@ export async function donateViaCheckout(
     return json;
   } else {
     return response;
+  }
+}
+
+export async function subscriptionDonation(token, charityId) {
+  console.log(token);
+  let productBody = {
+    name: `Monthly subscription donation to ${charityId}`,
+  };
+
+  let productResponse = await fetch(
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/products`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      body: JSON.stringify(productBody),
+    }
+  );
+
+  if (productResponse.ok) {
+    let productData = await productResponse.json();
+
+    let intervalBody = {
+      interval: "month",
+      currency: "usd",
+      unitAmount: 500,
+    };
+
+    let intervalResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/products/${productData.productId}/prices`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        method: "POST",
+        body: JSON.stringify(intervalBody),
+      }
+    );
+
+    if (intervalResponse.ok) {
+      let intervalData = await intervalResponse.json();
+      console.log(intervalData);
+
+      let subscriptionBody = {
+        items: [
+          {
+            quantity: 1,
+            priceId: intervalData.priceId,
+          },
+        ],
+        paymentMethodId: process.env.NEXT_PUBLIC_DEFAULT_PAYMENT_METHOD,
+        givingaAccountNumber: process.env.NEXT_PUBLIC_DEFAULT_USER,
+        charityId: charityId,
+        matchRequested: false,
+        notes: "Subscription created via demo app!",
+      };
+
+      console.log(subscriptionBody);
+
+      let subscriptionResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/subscriptions`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          method: "POST",
+          body: JSON.stringify(subscriptionBody),
+        }
+      );
+
+      console.log(
+        fetchToCurl(
+          `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/subscriptions`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            method: "POST",
+            body: JSON.stringify(subscriptionBody),
+          }
+        )
+      );
+
+      if (subscriptionResponse.ok) {
+        let subscription = await subscriptionResponse.json();
+        return subscription;
+      } else {
+        //error handle
+        return subscriptionResponse;
+      }
+    } else {
+      //errorHandle
+      return intervalResponse;
+    }
+  } else {
+    //error handle
+    return productResponse;
   }
 }

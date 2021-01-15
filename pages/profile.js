@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Router from "next/router";
 import Nav from "../components/nav";
 import { useRef, useState, useCallback } from "react";
 import {
@@ -30,6 +31,10 @@ export default function Profile({ user, transactions, stripeSecret }) {
       sessionId: session.id,
     });
   }, []);
+
+  const fundAccountViaElements = () => {
+    Router.push("/fund-elements");
+  };
 
   return (
     <div class="grid content-center">
@@ -70,7 +75,14 @@ export default function Profile({ user, transactions, stripeSecret }) {
                 type="button"
                 onClick={() => fundAccount()}
               >
-                Fund Account
+                Fund Account (Via Checkout)
+              </button>
+              <button
+                className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+                type="button"
+                onClick={() => fundAccountViaElements()}
+              >
+                Fund Account (Elements)
               </button>
             </div>
           </div>
