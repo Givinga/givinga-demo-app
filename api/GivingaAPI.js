@@ -59,7 +59,9 @@ export async function listTransactions() {
 
   if (response.ok) {
     let json = await response.json();
-    return json;
+    return json.sort(function (x, y) {
+      return y.timestamp - x.timestamp;
+    });
   } else {
     return response;
   }
@@ -155,7 +157,7 @@ export async function submitFundedDonation(charityId) {
       body: JSON.stringify({
         accountNumber: `${process.env.NEXT_PUBLIC_DEFAULT_USER}`,
         charityId: charityId,
-        amount: 500,
+        amount: 50,
         notes: "Test donation from the demo app!",
       }),
     }

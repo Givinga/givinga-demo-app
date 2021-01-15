@@ -35,7 +35,7 @@ export async function getStripe() {
 
 export async function subaccountFundingViaIntents(token, accountNumber) {
   const requestBody = {
-    amount: 10000,
+    amount: 500,
     currency: "USD",
     customerCoveringFee: false,
     matchRequested: false,
@@ -71,7 +71,7 @@ export async function subaccountFundingViaCheckout(
   let requestBody = {
     subaccountNumber: accountNumber,
     currency: "USD",
-    amount: 10000,
+    amount: 500,
     successURL: `${process.env.NEXT_PUBLIC_APP_URL}/profile`,
     cancelURL: `${process.env.NEXT_PUBLIC_APP_URL}/profile`,
     productName: "Account funding",
@@ -106,7 +106,7 @@ export async function donateViaCheckout(
   let requestBody = {
     givingaAccountNumber: accountNumber,
     currency: "USD",
-    amount: 10000,
+    amount: 500,
     charityId: charityId,
     matchRequested: false,
     successURL: `${process.env.NEXT_PUBLIC_APP_URL}/charities`,
