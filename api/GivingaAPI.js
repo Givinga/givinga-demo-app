@@ -6,7 +6,7 @@ export async function addUser(firstName, lastName, email, remoteId) {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "POST",
+      method: "post",
       body: JSON.stringify({
         firstName: email,
         lastName: lastName,
@@ -32,7 +32,7 @@ export async function listSubAccounts() {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
 
@@ -53,7 +53,7 @@ export async function listTransactions() {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
 
@@ -73,7 +73,7 @@ export async function accountDetail(email) {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
   if (response.ok) {
@@ -93,7 +93,7 @@ export async function userProfile() {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
   if (response.ok) {
@@ -112,7 +112,7 @@ export async function userTransactions(account_number) {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
   if (response.ok) {
@@ -131,13 +131,41 @@ export async function charitySearch(query) {
         "Content-Type": "application/json",
         Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
       },
-      method: "GET",
+      method: "get",
     }
   );
   if (response.ok) {
     let json = await response.json();
     return json.charities;
   } else {
+    return response;
+  }
+}
+
+export async function submitFundedDonation(charityId) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL_TEST}/donation`,
+    {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${process.env.NEXT_PUBLIC_FULLSEND_KEY}`,
+        Allow: "POST",
+      },
+      body: JSON.stringify({
+        accountNumber: `${process.env.NEXT_PUBLIC_DEFAULT_USER}`,
+        charityId: charityId,
+        amount: 500,
+        notes: "Test donation from the demo app!",
+      }),
+    }
+  );
+
+  if (response.ok) {
+    let json = await response.json();
+    return json;
+  } else {
+    console.log(response);
     return response;
   }
 }

@@ -1,6 +1,8 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import Nav from "../components/nav";
+import Router from "next/router";
+import useDebounce from "../helpers/debounce";
 import {
   CardElement,
   Elements,
@@ -14,13 +16,15 @@ import {
   donateViaCheckout,
   subaccountFundingViaIntents,
 } from "../api/GivingaPaymentsAPI";
-import { userProfile } from "../api/GivingaAPI";
+import { userProfile, submitFundedDonation } from "../api/GivingaAPI";
 
 export default function Charities({ stripeSecret, user }) {
   const searchRef = useRef(null);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(false);
   const [results, setResults] = useState([]);
+
+  const debouncedSearchTerm = useDebounce(query, 500);
 
   const stripePromise = loadStripe(stripeSecret.publicKey);
 
@@ -37,10 +41,16 @@ export default function Charities({ stripeSecret, user }) {
     });
   }, []);
 
-  const onChange = useCallback((event) => {
-    const query = event.target.value;
-    setQuery(query);
-    if (query.length) {
+  const fundedDonation = useCallback((charityId) => {
+    fetch(`/api/donate?charityId=${charityId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        Router.push("/success");
+      });
+  }, []);
+
+  useEffect(() => {
+    if (debouncedSearchTerm) {
       fetch(`/api/charities?filterText=${query}`)
         .then((response) => response.json())
         .then((data) => {
@@ -49,7 +59,7 @@ export default function Charities({ stripeSecret, user }) {
     } else {
       setResults([]);
     }
-  }, []);
+  }, [debouncedSearchTerm]);
 
   return (
     <div class="flex flex-col">
@@ -58,10 +68,9 @@ export default function Charities({ stripeSecret, user }) {
         <center>
           <input
             class="bg-purple-white shadow rounded border-0 p-3 mb-4 w-full"
-            onChange={onChange}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for a charity"
             type="text"
-            value={query}
           />
         </center>
         <div class="flex flex-col">
@@ -139,7 +148,16 @@ export default function Charities({ stripeSecret, user }) {
                               type="button"
                               onClick={() => donate(charity.id)}
                             >
-                              Donate
+                              Direct Donation
+                            </button>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+                              type="button"
+                              onClick={() => fundedDonation(charity.id)}
+                            >
+                              Funded Donation
                             </button>
                           </td>
                         </tr>

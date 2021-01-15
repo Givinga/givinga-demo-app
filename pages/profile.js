@@ -7,6 +7,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import CurrencyFormat from "react-currency-format";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import {
@@ -57,7 +58,12 @@ export default function Profile({ user, transactions, stripeSecret }) {
                 Account #: {user.number}
               </p>
               <p class="mt-2 font-sans font-light text-grey-dark">
-                Balance: ${user.balance}
+                <CurrencyFormat
+                  value={user.balance}
+                  displayType={"text"}
+                  thousandSeparator={true}
+                  prefix={"Balance $"}
+                />
               </p>
               <button
                 className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
@@ -71,7 +77,8 @@ export default function Profile({ user, transactions, stripeSecret }) {
         </center>
       </section>
       <section class="w-full px-6 mb-12 antialiased bg-white select-none">
-        <div class="text-lg">Transaction History</div>
+        <div class="text-lg px-4">Transaction History</div>
+        <br />
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -86,6 +93,12 @@ export default function Profile({ user, transactions, stripeSecret }) {
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Amount
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Charity Name
               </th>
               <th
                 scope="col"
@@ -110,7 +123,23 @@ export default function Profile({ user, transactions, stripeSecret }) {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
-                      ${transaction.amountPaid}
+                      <CurrencyFormat
+                        value={transaction.amountPaid}
+                        displayType={"text"}
+                        thousandSeparator={true}
+                        decimalScale={2}
+                        fixedDecimalScale={true}
+                        prefix={"$"}
+                      />
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">
+                          {transaction.charityName ?? "N/A (Funding event)"}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
