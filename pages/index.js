@@ -19,7 +19,7 @@ export default function Home({ user }) {
             </p>
             <a
               class="mr-5 bg-primary text-black font-bold py-2 px-6 rounded-md text-white"
-              href="https://www.github.com"
+              href="https://github.com/Givinga/givinga-demo-app"
             >
               View on Github
             </a>
