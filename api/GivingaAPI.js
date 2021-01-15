@@ -47,7 +47,7 @@ export async function listSubAccounts() {
 
 export async function listTransactions() {
   let response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL_TEST}/transactions?accountNumbers=${process.env.NEXT_PUBLIC_DEFAULT_USER}`,
+    `${process.env.NEXT_PUBLIC_API_URL_TEST}/transactions?accountNumbers=${process.env.NEXT_PUBLIC_DEFAULT_EMPLOYEE}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export async function accountDetail(email) {
 
 export async function userProfile() {
   let response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL_TEST}/accounts?numbers=${process.env.NEXT_PUBLIC_DEFAULT_USER}`,
+    `${process.env.NEXT_PUBLIC_API_URL_TEST}/accounts?numbers=${process.env.NEXT_PUBLIC_DEFAULT_EMPLOYEE}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -155,7 +155,7 @@ export async function submitFundedDonation(charityId) {
         Allow: "POST",
       },
       body: JSON.stringify({
-        accountNumber: `${process.env.NEXT_PUBLIC_DEFAULT_USER}`,
+        accountNumber: `${process.env.NEXT_PUBLIC_DEFAULT_EMPLOYEE}`,
         charityId: charityId,
         amount: 50,
         notes: "Test donation from the demo app!",
@@ -167,7 +167,6 @@ export async function submitFundedDonation(charityId) {
     let json = await response.json();
     return json;
   } else {
-    console.log(response);
     return response;
   }
 }

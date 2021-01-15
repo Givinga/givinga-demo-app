@@ -14,10 +14,16 @@ import { useRouter } from "next/router";
 import {
   getStripe,
   subaccountFundingViaCheckout,
+  getPaymentMethods,
 } from "../api/GivingaPaymentsAPI";
 import { userProfile, listTransactions } from "../api/GivingaAPI";
 
-export default function Profile({ user, transactions, stripeSecret }) {
+export default function Profile({
+  user,
+  transactions,
+  stripeSecret,
+  paymentMethods,
+}) {
   const stripePromise = loadStripe(stripeSecret.publicKey);
 
   const fundAccount = useCallback(async (charityId) => {
@@ -34,6 +40,10 @@ export default function Profile({ user, transactions, stripeSecret }) {
 
   const fundAccountViaElements = () => {
     Router.push("/fund-elements");
+  };
+
+  const addPaymentMethod = () => {
+    Router.push("/add-payment-method");
   };
 
   return (
@@ -84,14 +94,63 @@ export default function Profile({ user, transactions, stripeSecret }) {
               >
                 Fund Account (Elements)
               </button>
+              <button
+                className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+                type="button"
+                onClick={() => addPaymentMethod()}
+              >
+                Add Payment Method
+              </button>
             </div>
           </div>
         </center>
       </section>
       <section class="w-full px-6 mb-12 antialiased bg-white select-none">
+        <div class="text-lg px-4">Payment Methods</div>
+        <br />
+        <table class="min-w-full divide-y divide-gray-200 border">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Payment Method ID
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Last 4
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {paymentMethods.map((method) => {
+              return (
+                <tr key={method.id}>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">
+                          {method.id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {method.card?.last4 ?? "N/A"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+      <section class="w-full px-6 mb-12 antialiased bg-white select-none">
         <div class="text-lg px-4">Transaction History</div>
         <br />
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full divide-y divide-gray-200 border">
           <thead class="bg-gray-50">
             <tr>
               <th
@@ -179,12 +238,14 @@ export async function getServerSideProps(context) {
   const user = await userProfile();
   const transactions = await listTransactions();
   const stripeSecret = await getStripe();
+  const paymentMethods = await getPaymentMethods(stripeSecret.token);
 
   return {
     props: {
       user,
       transactions,
       stripeSecret,
+      paymentMethods,
     },
   };
 }

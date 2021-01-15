@@ -34,6 +34,46 @@ export async function getStripe() {
   }
 }
 
+export async function getSetupIntent(token) {
+  let response = await fetch(
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/setup-intents`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+    }
+  );
+
+  if (response.ok) {
+    let json = await response.json();
+    return json;
+  } else {
+    return response;
+  }
+}
+
+export async function getPaymentMethods(token) {
+  let response = await fetch(
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/payment-methods`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "GET",
+    }
+  );
+
+  if (response.ok) {
+    let json = await response.json();
+    return json;
+  } else {
+    return response;
+  }
+}
+
 export async function subaccountFundingViaIntents(token, accountNumber) {
   const requestBody = {
     amount: 5000,
@@ -137,7 +177,6 @@ export async function donateViaCheckout(
 }
 
 export async function subscriptionDonation(token, charityId) {
-  console.log(token);
   let productBody = {
     name: `Monthly subscription donation to ${charityId}`,
   };
@@ -177,7 +216,6 @@ export async function subscriptionDonation(token, charityId) {
 
     if (intervalResponse.ok) {
       let intervalData = await intervalResponse.json();
-      console.log(intervalData);
 
       let subscriptionBody = {
         items: [
@@ -187,13 +225,11 @@ export async function subscriptionDonation(token, charityId) {
           },
         ],
         paymentMethodId: process.env.NEXT_PUBLIC_DEFAULT_PAYMENT_METHOD,
-        givingaAccountNumber: process.env.NEXT_PUBLIC_DEFAULT_USER,
+        subaccountNumber: process.env.NEXT_PUBLIC_DEFAULT_EMPLOYEE,
         charityId: charityId,
         matchRequested: false,
         notes: "Subscription created via demo app!",
       };
-
-      console.log(subscriptionBody);
 
       let subscriptionResponse = await fetch(
         `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/subscriptions`,
@@ -205,20 +241,6 @@ export async function subscriptionDonation(token, charityId) {
           method: "POST",
           body: JSON.stringify(subscriptionBody),
         }
-      );
-
-      console.log(
-        fetchToCurl(
-          `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/subscriptions`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            method: "POST",
-            body: JSON.stringify(subscriptionBody),
-          }
-        )
       );
 
       if (subscriptionResponse.ok) {

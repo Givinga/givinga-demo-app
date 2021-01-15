@@ -18,10 +18,8 @@ function CheckoutForm({ stripe, elements, token }) {
 
     const paymentIntent = await subaccountFundingViaIntents(
       token,
-      process.env.NEXT_PUBLIC_DEFAULT_USER
+      process.env.NEXT_PUBLIC_DEFAULT_EMPLOYEE
     );
-
-    console.log(paymentIntent);
 
     if (paymentIntent !== undefined) {
       const result = await stripe.confirmCardPayment(
