@@ -23,6 +23,7 @@ export default function Charities({ stripeSecret, user }) {
   const searchRef = useRef(null);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(false);
+  const [processing, setProcessing] = useState(false)
   const [results, setResults] = useState([]);
 
   const debouncedSearchTerm = useDebounce(query, 500);
@@ -30,6 +31,8 @@ export default function Charities({ stripeSecret, user }) {
   const stripePromise = loadStripe(stripeSecret.publicKey);
 
   const donate = useCallback(async (charityId) => {
+    setResults([]);
+    setProcessing(true);
     const stripe = await stripePromise;
     let session = await donateViaCheckout(
       stripeSecret.token,
@@ -43,15 +46,20 @@ export default function Charities({ stripeSecret, user }) {
   }, []);
 
   const recurringDonation = useCallback(async (charityId) => {
+    setResults([]);
+    setProcessing(true);
     const stripe = await stripePromise;
     let subscriptionId = await subscriptionDonation(
       stripeSecret.token,
       charityId
     );
     alert(`Succesfully created subscription: ${subscriptionId}`);
+    setProcessing(false);
   }, []);
 
   const fundedDonation = useCallback((charityId) => {
+    setResults([]);
+    setProcessing(true);
     fetch(`/api/donate?charityId=${charityId}`)
       .then((response) => response.json())
       .then((data) => {
@@ -61,12 +69,15 @@ export default function Charities({ stripeSecret, user }) {
 
   useEffect(() => {
     if (debouncedSearchTerm) {
+      setProcessing(true)
       fetch(`/api/charities?filterText=${query}`)
         .then((response) => response.json())
         .then((data) => {
+          setProcessing(false)
           setResults(data);
         });
     } else {
+      setProcessing(false)
       setResults([]);
     }
   }, [debouncedSearchTerm]);
@@ -201,6 +212,13 @@ export default function Charities({ stripeSecret, user }) {
                 </table>
               </div>
             </div>
+          </div>
+          <div>
+          {
+            processing ?
+            (<div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 m-auto mt-10"></div>)
+            : ("")
+          }
           </div>
         </div>
       </section>
