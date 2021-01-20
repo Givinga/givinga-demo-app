@@ -34,7 +34,7 @@ export default function Charities({ stripeSecret, user }) {
     let session = await donateViaCheckout(
       stripeSecret.token,
       user.email,
-      user.number,
+      process.env.NEXT_PUBLIC_DEFAULT_DONOR,
       charityId
     );
     const result = await stripe.redirectToCheckout({
