@@ -16,6 +16,7 @@ import {
   donateViaCheckout,
   subaccountFundingViaIntents,
   subscriptionDonation,
+  JPYIntentsDonation
 } from "../api/GivingaPaymentsAPI";
 import { userProfile, submitFundedDonation } from "../api/GivingaAPI";
 
@@ -38,11 +39,45 @@ export default function Charities({ stripeSecret, user }) {
       stripeSecret.token,
       user.email,
       process.env.NEXT_PUBLIC_DEFAULT_DONOR,
-      charityId
+      charityId,
+      "USD"
     );
     const result = await stripe.redirectToCheckout({
       sessionId: session.id,
     });
+  }, []);
+
+  const donateJPY = useCallback(async (charityId) => {
+    setResults([]);
+    setProcessing(true);
+    const stripe = await stripePromise;
+    let paymentIntent = await JPYIntentsDonation(
+      stripeSecret.token,
+      process.env.NEXT_PUBLIC_DEFAULT_DONOR,
+      charityId
+    );
+
+    if (paymentIntent !== undefined) {
+      const result = await stripe.confirmCardPayment(
+        paymentIntent.clientSecret,
+        {
+          payment_method: process.env.NEXT_PUBLIC_DEFAULT_PAYMENT_METHOD
+        }
+      );
+
+      if (result.error) {
+        alert(result.error.message);
+        this.setState({ processing: false });
+      } else {
+        if (result.paymentIntent.status === "succeeded") {
+          this.setState({ processing: false });
+          alert("Succesfully donated in JPY");
+        }
+      }
+    } else {
+      // We hit an error above.
+      this.setState({ processing: false });
+    }
   }, []);
 
   const recurringDonation = useCallback(async (charityId) => {
@@ -123,7 +158,13 @@ export default function Charities({ stripeSecret, user }) {
                         scope="col"
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Direct Donation
+                        Direct Donation (USD)
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Direct Donation (JPY)
                       </th>
                       <th
                         scope="col"
@@ -184,7 +225,16 @@ export default function Charities({ stripeSecret, user }) {
                               type="button"
                               onClick={() => donate(charity.id)}
                             >
-                              Direct Donation
+                              Direct Donation (USD)
+                            </button>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              className="bg-gray-800 active:bg-gray-700 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
+                              type="button"
+                              onClick={() => donateJPY(charity.id)}
+                            >
+                              Direct Donation (JPY)
                             </button>
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

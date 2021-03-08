@@ -142,12 +142,13 @@ export async function donateViaCheckout(
   token,
   email,
   accountNumber,
-  charityId
+  charityId,
+  currency
 ) {
   let requestBody = {
     givingaAccountNumber: accountNumber,
-    currency: "USD",
-    amount: 5000,
+    currency: currency,
+    amount: 50000,
     charityId: charityId,
     matchRequested: false,
     successURL: `${process.env.NEXT_PUBLIC_APP_URL}/charities`,
@@ -168,6 +169,37 @@ export async function donateViaCheckout(
       body: JSON.stringify(requestBody),
     }
   );
+  if (response.ok) {
+    let json = await response.json();
+    return json;
+  } else {
+    return response;
+  }
+}
+
+export async function JPYIntentsDonation(token, accountNumber, charityId) {
+  const requestBody = {
+    amount: 50000,
+    currency: "JPY",
+    customerCoveringFee: false,
+    matchRequested: false,
+    givingaAccountNumber: accountNumber,
+    persistPaymentMethod: false,
+    charityId: charityId
+  };
+
+  let response = await fetch(
+    `${process.env.NEXT_PUBLIC_PAYMENTS_URL}/customers/${process.env.NEXT_PUBLIC_STRIPE_CUSTOMER}/payment-intents`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    }
+  );
+
   if (response.ok) {
     let json = await response.json();
     return json;
